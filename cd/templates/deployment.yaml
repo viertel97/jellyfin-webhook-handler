@@ -44,16 +44,6 @@ spec:
                 secretKeyRef:
                   name: akeyless-secret
                   key: access_key
-            - name: habit_list
-              valueFrom:
-                secretKeyRef:
-                  name: jellyfin-webhook-handler-secret
-                  key: habit_list
-            - name: tasker_mapping
-              valueFrom:
-                secretKeyRef:
-                  name: jellyfin-webhook-handler-secret
-                  key: tasker_mapping
           {{- range $name, $value := .Values.image.env}}
             - name: {{ $name }}
               value: {{ $value | quote}}
