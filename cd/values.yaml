@@ -10,7 +10,7 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: "latest"
   env:
-      SONARR_URL: "sonarr.default.svc.cluster.local:8989"
+      SONARR_URL: "http://sonarr.default.svc.cluster.local:8989"
 
 imagePullSecrets:
   - name: ghcr-secret
