@@ -1,0 +1,89 @@
+# Default values for jellyfin-webhook-handler.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/viertel97/jellyfin-webhook-handler
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+  env:
+      API_KEY: ""
+      SONARR_URL: "sonarr.default.svc.cluster.local:8989"
+
+imagePullSecrets:
+  - name: ghcr-secret
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.sclass: nginx
+    nginx.ingress.kubernetes.io/auth-url: "https://auth.viertel-it.de/oauth2/auth"
+    nginx.ingress.kubernetes.io/auth-signin: "https://auth.viertel-it.de/oauth2/start?rd=https://$host$escaped_request_uri"
+    cert-manager.io/cluster-issuer: letsencrypt
+  hosts:
+    - host: jellyfin-webhook-handler.viertel-it.de
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+  - hosts:
+    - jellyfin-webhook-handler.viertel-it.de
+    secretName: jellyfin-webhook-handler-tls
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+
+tolerations: []
+
+nodeSelector:
+  kubernetes.io/hostname: lenovo-server
+

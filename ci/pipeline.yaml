@@ -1,0 +1,16 @@
+name: $(Date:yyyyMMdd)-$(Build.BuildId)
+
+trigger:
+- main
+- master
+
+resources:
+- repo: self
+
+variables:
+- group: common
+
+extends:
+  template: pipeline-template.yaml
+  parameters:
+      repository: "jellyfin-webhook-handler"

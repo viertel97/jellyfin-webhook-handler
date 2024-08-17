@@ -1,0 +1,11 @@
+fastapi
+requests
+loguru
+uvicorn
+python-slugify
+rapidfuzz
+numpy==1.24.3
+pandas==1.5.3
+cachetools
+
+quarter_lib
