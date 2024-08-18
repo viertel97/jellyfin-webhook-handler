@@ -8,7 +8,7 @@ DEBUG = platform == "darwin" or platform == "win32" or platform == "Windows"
 
 
 def get_url(service):
-    if not DEBUG:
+    if DEBUG:
         return "http://192.168.178.49:9300"
     else:
         return f"http://{service}.custom.svc.cluster.local:80"
