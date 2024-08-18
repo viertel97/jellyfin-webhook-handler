@@ -43,15 +43,14 @@ async def webhook(request: Request):
             refresh_result = refresh_series(series_id)
             logger.info(refresh_result)
             log_to_telegram(f"Added monitoring for next episodes {next_episodes_log} for {title} starting from S{season}E{episode}", logger)
-            return JSONResponse(content={"status": "received"})
+            return JSONResponse(content={"status": "received"}, status_code=200)
         else:
             log_to_telegram(f"Could not find next episode for {title} S{season}E{episode}", logger)
-            logger.error(f"Could not find next episode for {title} S{season}E{episode}")
-            raise HTTPException(status_code=404, detail="Next episode not found")
+            return JSONResponse(content={"status": "Next episode not found"}, status_code=204)
+
     else:
         log_to_telegram(f"Could not find series with title {title}", logger)
-        logger.error(f"Could not find series with title {title}")
-        raise HTTPException(status_code=404, detail="Series not found")
+        return JSONResponse(content={"status": "Series not found"}, status_code=204)
 
 
 # health check
