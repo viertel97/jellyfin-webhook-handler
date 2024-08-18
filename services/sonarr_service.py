@@ -1,5 +1,6 @@
 import requests
 from expiringdict import ExpiringDict
+from proxies.telegram_proxy import log_to_telegram
 from quarter_lib.logging import setup_logging
 from rapidfuzz import fuzz, process
 from slugify import slugify
@@ -75,16 +76,16 @@ def get_next_episodes(episodes, current_season: int, current_episode: int, numbe
 
     if current_index is None:
         logger.error(f"Could not find episode with season {current_season} and episode {current_episode}")
-        return None
+        return None, None
 
     next_two_episodes = episodes[current_index + number_of_episodes - 1: current_index + number_of_episodes + 1]
     if not next_two_episodes:
-        logger.error(f"Could not find next episodes for season {current_season} and episode {current_episode}")
-        return None
+        log_to_telegram(f"Could not find next episodes for season {current_season} and episode {current_episode}", logger)
+        return None, None
     next_two_episodes = [episode for episode in next_two_episodes if not episode["hasFile"]]
     if not next_two_episodes:
-        logger.error(f"No episodes without files found after season {current_season} and episode {current_episode}")
-        return None
+        log_to_telegram(f"No episodes without files found after season {current_season} and episode {current_episode}", logger)
+        return None, None
     next_episodes_log = [{"seasonNumber": episode["seasonNumber"], "episodeNumber": episode["episodeNumber"]} for
                          episode in next_two_episodes]
     logger.info(
