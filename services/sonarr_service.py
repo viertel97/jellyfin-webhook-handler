@@ -10,6 +10,7 @@ logger = setup_logging(__file__)
 
 lookup_endpoint = f"{SONARR_URL}/api/v3/series"
 episode_endpoint = f"{SONARR_URL}/api/v3/episode"
+monitor_endpoint = f"{SONARR_URL}/api/v3/episode/monitor"
 
 HEADERS = {"X-Api-Key": API_KEY}
 CACHE = ExpiringDict(max_len=100, max_age_seconds=10)
@@ -88,11 +89,10 @@ def get_next_episodes(episodes, current_season: int, current_episode: int, numbe
                          episode in next_two_episodes]
     logger.info(
         f"Current season: {current_season}, current episode: {current_episode} - Next two episodes: {next_episodes_log}")
-    return next_two_episodes
+    return next_two_episodes, next_episodes_log
 
 
 def add_monitoring_for_episodes(episodes):
-    monitor_endpoint = f"{SONARR_URL}/api/v3/episode/monitor"
     ids = [episode["id"] for episode in episodes]
     payload = {"episodeIds": ids, "monitored": True}
     response = requests.put(monitor_endpoint, headers=HEADERS, json=payload)

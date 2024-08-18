@@ -1,5 +1,6 @@
 import json
 
+from proxies.telegram_proxy import log_to_telegram
 import uvicorn
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
@@ -35,25 +36,30 @@ async def webhook(request: Request):
     if matched_series:
         series_id = matched_series["id"]
         episodes = get_episodes(series_id)
-        next_episodes = get_next_episodes(episodes, season, episode)
+        next_episodes, next_episodes_log = get_next_episodes(episodes, season, episode)
         if next_episodes:
             add_result = add_monitoring_for_episodes(next_episodes)
             logger.info(add_result)
             refresh_result = refresh_series(series_id)
             logger.info(refresh_result)
+            log_to_telegram(f"Added monitoring for next episodes {next_episodes_log} for {title} starting from S{season}E{episode}", logger)
             return JSONResponse(content={"status": "received"})
         else:
+            log_to_telegram(f"Could not find next episode for {title} S{season}E{episode}", logger)
             logger.error(f"Could not find next episode for {title} S{season}E{episode}")
             raise HTTPException(status_code=404, detail="Next episode not found")
     else:
+        log_to_telegram(f"Could not find series with title {title}", logger)
         logger.error(f"Could not find series with title {title}")
         raise HTTPException(status_code=404, detail="Series not found")
 
 
 # health check
-@app.get("/")
+@app.get("/health")
 def read_root():
     return {"status": "ok"}
+
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=80)
