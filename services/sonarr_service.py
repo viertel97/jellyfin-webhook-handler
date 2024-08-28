@@ -1,17 +1,18 @@
 import requests
 from expiringdict import ExpiringDict
-from proxies.telegram_proxy import log_to_telegram
 from quarter_lib.logging import setup_logging
 from rapidfuzz import fuzz, process
 from slugify import slugify
 
 from config.configuration import SONARR_URL, API_KEY
+from proxies.telegram_proxy import log_to_telegram
 
 logger = setup_logging(__file__)
 
 lookup_endpoint = f"{SONARR_URL}/api/v3/series"
 episode_endpoint = f"{SONARR_URL}/api/v3/episode"
 monitor_endpoint = f"{SONARR_URL}/api/v3/episode/monitor"
+episodeFile_endpoint = f"{SONARR_URL}/api/v3/episodefile"
 
 HEADERS = {"X-Api-Key": API_KEY}
 CACHE = ExpiringDict(max_len=100, max_age_seconds=10)
@@ -67,30 +68,57 @@ def get_series_by_name(series_name: str):
     return None
 
 
-def get_next_episodes(episodes, current_season: int, current_episode: int, number_of_episodes=2):
-    current_index = None
-    for i, ep in enumerate(episodes):
-        if ep['seasonNumber'] == int(current_season) and ep['episodeNumber'] == int(current_episode):
-            current_index = i
-            break
-
-    if current_index is None:
+def get_next_episodes(episodes, current_season: int, current_episode: int, current_episode_index: int,
+                      number_of_episodes=2):
+    if current_episode_index is None:
         logger.error(f"Could not find episode with season {current_season} and episode {current_episode}")
         return None, None
 
-    next_two_episodes = episodes[current_index + number_of_episodes - 1: current_index + number_of_episodes + 1]
+    next_two_episodes = episodes[
+                        current_episode_index + number_of_episodes - 1: current_episode_index + number_of_episodes + 1]
     if not next_two_episodes:
-        log_to_telegram(f"Could not find next episodes for season {current_season} and episode {current_episode}", logger)
+        log_to_telegram(f"Could not find next episodes for season {current_season} and episode {current_episode}",
+                        logger)
         return None, None
     next_two_episodes = [episode for episode in next_two_episodes if not episode["hasFile"]]
     if not next_two_episodes:
-        log_to_telegram(f"No episodes without files found after season {current_season} and episode {current_episode}", logger)
+        log_to_telegram(f"No episodes without files found after season {current_season} and episode {current_episode}",
+                        logger)
         return None, None
     next_episodes_log = [{"seasonNumber": episode["seasonNumber"], "episodeNumber": episode["episodeNumber"]} for
                          episode in next_two_episodes]
     logger.info(
         f"Current season: {current_season}, current episode: {current_episode} - Next two episodes: {next_episodes_log}")
     return next_two_episodes, next_episodes_log
+
+
+def get_last_episodes(episodes, current_episode_index: int,
+                      number_of_episodes=2):
+    if current_episode_index is None:
+        return None
+    last_episodes = episodes[current_episode_index - number_of_episodes:current_episode_index]
+    if not last_episodes:
+        return None
+    return last_episodes
+
+
+def delete_episodes(episodes):
+    episodes = [episode for episode in episodes if episode["hasFile"]]
+    if not episodes:
+        return
+    for episode in episodes:
+        response = requests.delete(f"{episodeFile_endpoint}/{episode['episodeFileId']}", headers=HEADERS)
+        log_to_telegram(f"Deleted episode: {episode['id']} - {episode['title']} with response: {response.content}",
+                        logger)
+
+
+def get_current_episode_index(current_episode, current_season, episodes):
+    current_index = None
+    for i, ep in enumerate(episodes):
+        if ep['seasonNumber'] == int(current_season) and ep['episodeNumber'] == int(current_episode):
+            current_index = i
+            break
+    return current_index
 
 
 def add_monitoring_for_episodes(episodes):

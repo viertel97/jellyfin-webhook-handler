@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from quarter_lib.logging import setup_logging
 
 from services.sonarr_service import get_series_by_name, get_episodes, get_next_episodes, add_monitoring_for_episodes, \
-    refresh_series
+    refresh_series, get_current_episode_index, get_last_episodes, delete_episodes
 
 logger = setup_logging(__file__)
 
@@ -36,17 +36,24 @@ async def webhook(request: Request):
     if matched_series:
         series_id = matched_series["id"]
         episodes = get_episodes(series_id)
-        next_episodes, next_episodes_log = get_next_episodes(episodes, season, episode)
+        current_episode_index = get_current_episode_index(episode, season, episodes)
+        next_episodes, next_episodes_log = get_next_episodes(episodes, season, current_episode_index, episode)
         if next_episodes:
             add_result = add_monitoring_for_episodes(next_episodes)
             logger.info(add_result)
             refresh_result = refresh_series(series_id)
             logger.info(refresh_result)
             log_to_telegram(f"Added monitoring for next episodes {next_episodes_log} for {title} starting from S{season}E{episode}", logger)
-            return JSONResponse(content={"status": "received"}, status_code=200)
+            #return JSONResponse(content={"status": "received"}, status_code=200)
         else:
             log_to_telegram(f"Could not find next episode for {title} S{season}E{episode}", logger)
-            return JSONResponse(content={"status": "Next episode not found"}, status_code=204)
+            #return JSONResponse(content={"status": "Next episode not found"}, status_code=204)
+        # delete last episodes
+        last_episodes = get_last_episodes(episodes, season, current_episode_index,3)
+        delete_episodes(last_episodes)
+
+
+
 
     else:
         log_to_telegram(f"Could not find series with title {title}", logger)
