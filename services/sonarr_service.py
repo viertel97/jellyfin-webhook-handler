@@ -108,8 +108,9 @@ def delete_episodes(episodes):
         return
     for episode in episodes:
         response = requests.delete(f"{episodeFile_endpoint}/{episode['episodeFileId']}", headers=HEADERS)
-        log_to_telegram(f"Deleted episode: {episode['id']} - {episode['title']} with response: {response.content}",
-                        logger)
+        log_to_telegram(
+            f"Deleted episode: {str(episode['seasonNumber'])}x{str(episode['episodeNumber'])} - {episode['title']} with response: {response.content}",
+            logger)
 
 
 def get_current_episode_index(current_episode, current_season, episodes):
