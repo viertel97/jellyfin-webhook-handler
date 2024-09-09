@@ -73,9 +73,9 @@ def get_next_episodes(episodes, current_season: int, current_episode: int, curre
     if current_episode_index is None:
         logger.error(f"Could not find episode with season {current_season} and episode {current_episode}")
         return None, None
-
-    next_two_episodes = episodes[
-                        current_episode_index + number_of_episodes - 1: current_episode_index + number_of_episodes + 1]
+    start_index = current_episode_index + number_of_episodes - 1
+    end_index = current_episode_index + number_of_episodes + 1
+    next_two_episodes = episodes[start_index:end_index]
     if not next_two_episodes:
         log_to_telegram(f"Could not find next episodes for season {current_season} and episode {current_episode}",
                         logger)
@@ -118,7 +118,7 @@ def get_current_episode_index(current_episode, current_season, episodes):
         if ep['seasonNumber'] == int(current_season) and ep['episodeNumber'] == int(current_episode):
             current_index = i
             break
-    return current_index
+    return int(current_index)
 
 
 def add_monitoring_for_episodes(episodes):

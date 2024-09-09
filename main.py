@@ -20,24 +20,24 @@ async def webhook(request: Request):
         raw_data = await request.body()
 
         data_str = raw_data.decode('utf-8')
-        print("Decoded Data:", data_str)
+        logger.info("Decoded Data:", data_str)
 
         data = json.loads(data_str)
-        print("Parsed JSON:", data)
+        logger.info("Parsed JSON:", data)
 
     except json.JSONDecodeError as e:
-        print(f"Error parsing JSON: {e}")
+        logger.error(f"Error parsing JSON: {e}")
         raise HTTPException(status_code=400, detail="Invalid JSON")
 
     title = data["SeriesName"]
-    season = data["SeasonNumber"]
-    episode = data["EpisodeNumber"]
+    season = int(data["SeasonNumber"])
+    episode = int(data["EpisodeNumber"])
     matched_series = get_series_by_name(title)
     if matched_series:
         series_id = matched_series["id"]
         episodes = get_episodes(series_id)
         current_episode_index = get_current_episode_index(episode, season, episodes)
-        next_episodes, next_episodes_log = get_next_episodes(episodes, season, current_episode_index, episode)
+        next_episodes, next_episodes_log = get_next_episodes(episodes=episodes, current_season=season, current_episode=episode, current_episode_index=current_episode_index)
         if next_episodes:
             add_result = add_monitoring_for_episodes(next_episodes)
             logger.info(add_result)
@@ -49,7 +49,7 @@ async def webhook(request: Request):
             log_to_telegram(f"Could not find next episode for {title} S{season}E{episode}", logger)
             #return JSONResponse(content={"status": "Next episode not found"}, status_code=204)
         # delete last episodes
-        last_episodes = get_last_episodes(episodes, season, current_episode_index,3)
+        last_episodes = get_last_episodes(episodes=episodes, current_episode_index=current_episode_index,number_of_episodes=3)
         delete_episodes(last_episodes)
 
 
