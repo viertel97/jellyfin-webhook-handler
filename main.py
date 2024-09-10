@@ -49,7 +49,7 @@ async def webhook(request: Request):
             log_to_telegram(f"Could not find next episode for {title} S{season}E{episode}", logger)
             #return JSONResponse(content={"status": "Next episode not found"}, status_code=204)
         # delete last episodes
-        episodes_to_delete = get_episodes_to_delete(episodes=episodes, distance_from_current_episode=1, current_episode_index=current_episode_index, number_of_episodes=3)
+        episodes_to_delete = get_episodes_to_delete(episodes=episodes, distance_from_current_episode=2, current_episode_index=current_episode_index, number_of_episodes=3)
         delete_episodes(episodes_to_delete)
 
 
