@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from quarter_lib.logging import setup_logging
 
 from services.sonarr_service import get_series_by_name, get_episodes, get_next_episodes, add_monitoring_for_episodes, \
-    refresh_series, get_current_episode_index, get_last_episodes, delete_episodes
+    refresh_series, get_current_episode_index, get_episodes_to_delete, delete_episodes
 
 logger = setup_logging(__file__)
 
@@ -49,8 +49,8 @@ async def webhook(request: Request):
             log_to_telegram(f"Could not find next episode for {title} S{season}E{episode}", logger)
             #return JSONResponse(content={"status": "Next episode not found"}, status_code=204)
         # delete last episodes
-        last_episodes = get_last_episodes(episodes=episodes, current_episode_index=current_episode_index,number_of_episodes=3)
-        delete_episodes(last_episodes)
+        episodes_to_delete = get_episodes_to_delete(episodes=episodes, distance_from_current_episode=1, current_episode_index=current_episode_index, number_of_episodes=3)
+        delete_episodes(episodes_to_delete)
 
 
 

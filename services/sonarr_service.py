@@ -92,19 +92,21 @@ def get_next_episodes(episodes, current_season: int, current_episode: int, curre
     return next_two_episodes, next_episodes_log
 
 
-def get_last_episodes(episodes, current_episode_index: int,
-                      number_of_episodes=2):
+def get_episodes_to_delete(episodes, current_episode_index: int, distance_from_current_episode=1,
+                           number_of_episodes=2):
     if current_episode_index is None:
         return None
-    last_episodes = episodes[current_episode_index - number_of_episodes:current_episode_index]
-    if not last_episodes:
+    adjusted_episode_index = current_episode_index - distance_from_current_episode
+    episodes_to_delete = episodes[adjusted_episode_index - number_of_episodes:adjusted_episode_index]
+    if not episodes_to_delete:
         return None
-    return last_episodes
+    return episodes_to_delete
 
 
 def delete_episodes(episodes):
     episodes = [episode for episode in episodes if episode["hasFile"]]
-    if not episodes:
+    if not episodes or len(episodes) == 0:
+        log_to_telegram(f"No episodes with files found to delete", logger)
         return
     for episode in episodes:
         response = requests.delete(f"{episodeFile_endpoint}/{episode['episodeFileId']}", headers=HEADERS)
