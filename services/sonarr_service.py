@@ -4,7 +4,7 @@ from quarter_lib.logging import setup_logging
 from rapidfuzz import fuzz, process
 from slugify import slugify
 
-from config.configuration import SONARR_URL, API_KEY
+from config.configuration import SONARR_URL, SONAR_API_KEY
 from proxies.telegram_proxy import log_to_telegram
 
 logger = setup_logging(__file__)
@@ -14,7 +14,7 @@ episode_endpoint = f"{SONARR_URL}/api/v3/episode"
 monitor_endpoint = f"{SONARR_URL}/api/v3/episode/monitor"
 episodeFile_endpoint = f"{SONARR_URL}/api/v3/episodefile"
 
-HEADERS = {"X-Api-Key": API_KEY}
+HEADERS = {"X-Api-Key": SONAR_API_KEY}
 CACHE = ExpiringDict(max_len=100, max_age_seconds=10)
 
 

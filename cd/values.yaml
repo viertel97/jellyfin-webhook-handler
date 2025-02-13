@@ -11,6 +11,7 @@ image:
   tag: "latest"
   env:
       SONARR_URL: "http://sonarr.default.svc.cluster.local:8989"
+      JELLYFIN_URL: "http://jellyfin.default.svc.cluster.local:8096"
 
 imagePullSecrets:
   - name: ghcr-secret

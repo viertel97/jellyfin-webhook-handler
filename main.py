@@ -6,6 +6,7 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 from quarter_lib.logging import setup_logging
 
+from services.jellyfin_service import update_jellyfin_library
 from services.sonarr_service import get_series_by_name, get_episodes, get_next_episodes, add_monitoring_for_episodes, \
     refresh_series, get_current_episode_index, get_episodes_to_delete, delete_episodes
 
@@ -44,6 +45,7 @@ async def webhook(request: Request):
             refresh_result = refresh_series(series_id)
             logger.info(refresh_result)
             log_to_telegram(f"Added monitoring for next episodes {next_episodes_log} for {title} starting from S{season}E{episode}", logger)
+            update_jellyfin_library()
             #return JSONResponse(content={"status": "received"}, status_code=200)
         else:
             log_to_telegram(f"Could not find next episode for {title} S{season}E{episode}", logger)
