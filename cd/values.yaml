@@ -10,8 +10,8 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: "latest"
   env:
-      SONARR_URL: "http://sonarr.default.svc.cluster.local:8989"
-      JELLYFIN_URL: "http://jellyfin.default.svc.cluster.local:8096"
+      SONARR_URL: "http://sonarr.media.svc.cluster.local:8989"
+      JELLYFIN_URL: "http://jellyfin.media.svc.cluster.local:8096"
 
 imagePullSecrets:
   - name: ghcr-secret
