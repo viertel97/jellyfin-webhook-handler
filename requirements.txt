@@ -4,7 +4,7 @@ loguru
 uvicorn
 python-slugify
 rapidfuzz
-numpy==1.24.3
+numpy==2.3.3
 pandas==1.5.3
 cachetools
 expiringdict==1.2.2
