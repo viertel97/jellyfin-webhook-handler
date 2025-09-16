@@ -6,5 +6,5 @@ python-slugify
 rapidfuzz
 cachetools
 expiringdict==1.2.2
-
+pytz
 quarter_lib
