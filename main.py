@@ -53,6 +53,7 @@ async def webhook(request: Request):
         # delete last episodes
         episodes_to_delete = get_episodes_to_delete(episodes=episodes, distance_from_current_episode=2, current_episode_index=current_episode_index, number_of_episodes=3)
         delete_episodes(episodes_to_delete)
+        return None
 
 
 

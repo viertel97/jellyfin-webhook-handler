@@ -3,6 +3,7 @@ from expiringdict import ExpiringDict
 from quarter_lib.logging import setup_logging
 from rapidfuzz import fuzz, process
 from slugify import slugify
+import time
 
 from config.configuration import SONARR_URL, SONAR_API_KEY
 from proxies.telegram_proxy import log_to_telegram
@@ -132,8 +133,52 @@ def add_monitoring_for_episodes(episodes):
     return response.json()
 
 
-def refresh_series(series_id: int):
+def refresh_series(series_id: int, max_retries: int = 5, backoff_seconds: float = 1.0):
     refresh_endpoint = f"{SONARR_URL}/api/v3/command"
-    payload = {"name": "SeriesSearch", "seriesId": series_id}
-    response = requests.post(refresh_endpoint, headers=HEADERS, json=payload)
-    return response.json()
+    payload = {
+        "isExclusive": False,
+        "isLongRunning": False,
+        "name": "SeriesSearch",
+        "requiresDiskAccess": False,
+        "sendUpdatesToClient": False,
+        "seriesId": series_id,
+        "suppressMessages": False,
+        "trigger": "manual",
+        "updateScheduledTask": True,
+    }
+
+    last_response = None
+    for attempt in range(1, max_retries + 1):
+        try:
+            response = requests.post(refresh_endpoint, headers=HEADERS, json=payload, timeout=10)
+            last_response = response
+            if response.status_code == 201:
+                logger.info(f"SeriesSearch command accepted for series {series_id} on attempt {attempt}")
+                # Successful creation
+                try:
+                    return response.json()
+                except ValueError:
+                    return {"status": response.status_code, "text": response.text}
+            else:
+                logger.warning(
+                    f"Attempt {attempt}/{max_retries} - Unexpected status {response.status_code}: {response.text[:500]}"
+                )
+        except requests.RequestException as e:
+            logger.warning(f"Attempt {attempt}/{max_retries} - Request failed: {e}")
+        # Backoff before next attempt (except after the last attempt)
+        if attempt < max_retries:
+            sleep_time = backoff_seconds * (2 ** (attempt - 1))
+            time.sleep(sleep_time)
+
+    # Exhausted retries; log and return best-effort details
+    log_to_telegram(
+        f"Failed to get 201 from Sonarr for SeriesSearch on series {series_id} after {max_retries} attempts",
+        logger,
+    )
+
+    if last_response is not None:
+        try:
+            return last_response.json()
+        except ValueError:
+            return {"status": last_response.status_code, "text": last_response.text}
+    return None
