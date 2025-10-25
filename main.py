@@ -42,7 +42,7 @@ async def webhook(request: Request):
         if next_episodes:
             add_result = add_monitoring_for_episodes(next_episodes)
             logger.info(add_result)
-            refresh_result = refresh_series(series_id)
+            refresh_result = refresh_series(series_id, season)
             logger.info(refresh_result)
             log_to_telegram(f"Added monitoring for next episodes {next_episodes_log} for {title} starting from S{season}E{episode}", logger)
             update_jellyfin_library()

@@ -133,18 +133,19 @@ def add_monitoring_for_episodes(episodes):
     return response.json()
 
 
-def refresh_series(series_id: int, max_retries: int = 5, backoff_seconds: float = 1.0):
+def refresh_series(series_id: int, season_number: int,  max_retries: int = 5, backoff_seconds: float = 1.0):
     refresh_endpoint = f"{SONARR_URL}/api/v3/command"
     payload = {
-        "isExclusive": False,
-        "isLongRunning": False,
-        "name": "SeriesSearch",
-        "requiresDiskAccess": False,
-        "sendUpdatesToClient": False,
-        "seriesId": series_id,
-        "suppressMessages": False,
-        "trigger": "manual",
-        "updateScheduledTask": True,
+        'seriesId': series_id,
+        'seasonNumber': season_number,
+        'sendUpdatesToClient': True,
+        'updateScheduledTask': True,
+        'requiresDiskAccess': False,
+        'isExclusive': False,
+        'isLongRunning': False,
+        'name': 'SeasonSearch',
+        'trigger': 'manual',
+        'suppressMessages': False
     }
 
     last_response = None
@@ -154,7 +155,6 @@ def refresh_series(series_id: int, max_retries: int = 5, backoff_seconds: float 
             last_response = response
             if response.status_code == 201:
                 logger.info(f"SeriesSearch command accepted for series {series_id} on attempt {attempt}")
-                # Successful creation
                 try:
                     return response.json()
                 except ValueError:
@@ -165,12 +165,10 @@ def refresh_series(series_id: int, max_retries: int = 5, backoff_seconds: float 
                 )
         except requests.RequestException as e:
             logger.warning(f"Attempt {attempt}/{max_retries} - Request failed: {e}")
-        # Backoff before next attempt (except after the last attempt)
         if attempt < max_retries:
             sleep_time = backoff_seconds * (2 ** (attempt - 1))
             time.sleep(sleep_time)
 
-    # Exhausted retries; log and return best-effort details
     log_to_telegram(
         f"Failed to get 201 from Sonarr for SeriesSearch on series {series_id} after {max_retries} attempts",
         logger,
