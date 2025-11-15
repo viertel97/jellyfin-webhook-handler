@@ -136,16 +136,16 @@ def add_monitoring_for_episodes(episodes):
 def refresh_series(series_id: int, season_number: int,  max_retries: int = 5, backoff_seconds: float = 1.0):
     refresh_endpoint = f"{SONARR_URL}/api/v3/command"
     payload = {
-        'seriesId': series_id,
-        'seasonNumber': season_number,
-        'sendUpdatesToClient': True,
-        'updateScheduledTask': True,
-        'requiresDiskAccess': False,
-        'isExclusive': False,
-        'isLongRunning': False,
-        'name': 'SeasonSearch',
-        'trigger': 'manual',
-        'suppressMessages': False
+        "seriesId": series_id,
+        "seasonNumber": season_number,
+        "sendUpdatesToClient": True,
+        "updateScheduledTask": True,
+        "requiresDiskAccess": False,
+        "isExclusive": False,
+        "isLongRunning": False,
+        "name": "SeasonSearch",
+        "trigger": "manual",
+        "suppressMessages": False,
     }
 
     last_response = None
